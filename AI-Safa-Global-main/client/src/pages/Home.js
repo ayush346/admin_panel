@@ -379,7 +379,7 @@ const Home = () => {
           </motion.div>
           
           {isEditMode && (
-            <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '1rem 0' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '1rem 0' }} contentEditable={false}>
               <button type="button" className="btn btn-secondary" onClick={handleAddDivision}>
                 Add
               </button>
@@ -440,7 +440,7 @@ const Home = () => {
           </motion.div>
 
           {isEditMode && (
-            <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '1rem 0' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '1rem 0' }} contentEditable={false}>
               <button type="button" className="btn btn-secondary" onClick={handleAddFeature}>
                 Add
               </button>

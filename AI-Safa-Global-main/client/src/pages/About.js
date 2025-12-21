@@ -260,7 +260,7 @@ const About = () => {
           </motion.div>
 
           {isEditMode && (
-            <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '1rem 0' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '1rem 0' }} contentEditable={false}>
               <button type="button" className="btn btn-secondary" onClick={handleAddValue}>
                 Add
               </button>
@@ -321,7 +321,7 @@ const About = () => {
           </motion.div>
 
           {isEditMode && (
-            <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '1rem 0' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '1rem 0' }} contentEditable={false}>
               <button type="button" className="btn btn-secondary" onClick={handleAddWhy}>
                 Add
               </button>
@@ -377,7 +377,7 @@ const About = () => {
           </motion.div>
 
           {isEditMode && (
-            <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '1rem 0' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '1rem 0' }} contentEditable={false}>
               <button type="button" className="btn btn-secondary" onClick={handleAddService}>
                 Add
               </button>
@@ -426,7 +426,7 @@ const About = () => {
           </motion.div>
 
           {isEditMode && (
-            <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '1rem 0' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '1rem 0' }} contentEditable={false}>
               <button type="button" className="btn btn-secondary" onClick={handleAddSectorSolution}>
                 Add
               </button>
@@ -475,7 +475,7 @@ const About = () => {
           </motion.div>
 
           {isEditMode && (
-            <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '1rem 0' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '1rem 0' }} contentEditable={false}>
               <button type="button" className="btn btn-secondary" onClick={handleAddValueAdded}>
                 Add
               </button>
@@ -525,7 +525,7 @@ const About = () => {
           </motion.div>
 
           {isEditMode && (
-            <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '1rem 0' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '1rem 0' }} contentEditable={false}>
               <button type="button" className="btn btn-secondary" onClick={handleAddBrand}>
                 Add
               </button>
@@ -629,7 +629,7 @@ const About = () => {
       <section className="achievements-section">
         <div className="container">
           {isEditMode && (
-            <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '1rem 0' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '1rem 0' }} contentEditable={false}>
               <button type="button" className="btn btn-secondary" onClick={handleAddAchievement}>
                 Add
               </button>

@@ -390,7 +390,7 @@ Submitted on: ${new Date().toLocaleString()}
           >
             <h2>Why Choose Al Safa Global?</h2>
             {isEditMode && (
-              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }} contentEditable={false}>
                 <button type="button" className="btn btn-secondary" onClick={handleAddBenefit}>
                   Add
                 </button>

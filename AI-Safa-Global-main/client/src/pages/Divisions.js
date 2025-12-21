@@ -187,7 +187,7 @@ const Divisions = () => {
       <section className="divisions-content">
         <div className="container">
           {isEditMode && (
-            <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '1rem 0' }}>
+            <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '1rem 0' }} contentEditable={false}>
               <button type="button" className="btn btn-secondary" onClick={handleAddDivision}>
                 Add Segment
               </button>
@@ -326,7 +326,7 @@ function WhyChooseEditable() {
   return (
     <>
       {isEditMode && (
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }} contentEditable={false}>
           <button type="button" className="btn btn-secondary" onClick={handleAdd}>
             Add
           </button>
