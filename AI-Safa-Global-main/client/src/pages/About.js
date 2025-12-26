@@ -16,6 +16,7 @@ import {
 } from 'react-icons/fi';
 import './About.css';
 import { useEditMode } from '../context/EditModeContext';
+import { ConfirmDialog, useConfirmState } from '../components/ConfirmDialog';
 
 const About = () => {
   const [ref, inView] = useInView({
@@ -25,7 +26,8 @@ const About = () => {
 
   // State to track if brands have been animated in this page visit
   const [brandsAnimated, setBrandsAnimated] = useState(false);
-  const { isEditMode } = useEditMode();
+  const { isEditMode, isDisabled, disableContent, enableContent } = useEditMode();
+  const { confirmState, askConfirm, handleConfirm, handleCancel } = useConfirmState();
 
   // Add intersection observer for brand items
   const [brandsRef, brandsInView] = useInView({
@@ -76,7 +78,9 @@ const About = () => {
   };
 
   const handleRemoveValue = (indexToRemove) => {
-    setValues(prev => prev.filter((_, i) => i !== indexToRemove));
+    askConfirm('Are you sure you want to delete this item?', () => {
+      setValues(prev => prev.filter((_, i) => i !== indexToRemove));
+    });
   };
 
   const initialAchievements = [
@@ -158,22 +162,46 @@ const About = () => {
 
   // Handlers for add/delete across sections
   const handleAddService = () => setServices(prev => [...prev, "New service - click to edit"]);
-  const handleRemoveService = (index) => setServices(prev => prev.filter((_, i) => i !== index));
+  const handleRemoveService = (index) => {
+    askConfirm('Are you sure you want to delete this item?', () => {
+      setServices(prev => prev.filter((_, i) => i !== index));
+    });
+  };
 
   const handleAddSectorSolution = () => setSectorSolutions(prev => [...prev, "New solution - click to edit"]);
-  const handleRemoveSectorSolution = (index) => setSectorSolutions(prev => prev.filter((_, i) => i !== index));
+  const handleRemoveSectorSolution = (index) => {
+    askConfirm('Are you sure you want to delete this item?', () => {
+      setSectorSolutions(prev => prev.filter((_, i) => i !== index));
+    });
+  };
 
   const handleAddValueAdded = () => setValueAddedServices(prev => [...prev, "New value-added service - click to edit"]);
-  const handleRemoveValueAdded = (index) => setValueAddedServices(prev => prev.filter((_, i) => i !== index));
+  const handleRemoveValueAdded = (index) => {
+    askConfirm('Are you sure you want to delete this item?', () => {
+      setValueAddedServices(prev => prev.filter((_, i) => i !== index));
+    });
+  };
 
   const handleAddBrand = () => setBrands(prev => [...prev, { name: "New Brand", image: process.env.PUBLIC_URL + "/images/logo.png" }]);
-  const handleRemoveBrand = (index) => setBrands(prev => prev.filter((_, i) => i !== index));
+  const handleRemoveBrand = (index) => {
+    askConfirm('Are you sure you want to delete this brand?', () => {
+      setBrands(prev => prev.filter((_, i) => i !== index));
+    });
+  };
 
   const handleAddAchievement = () => setAchievements(prev => [...prev, { number: "New", label: "Achievement", icon: <FiAward /> }]);
-  const handleRemoveAchievement = (index) => setAchievements(prev => prev.filter((_, i) => i !== index));
+  const handleRemoveAchievement = (index) => {
+    askConfirm('Are you sure you want to delete this item?', () => {
+      setAchievements(prev => prev.filter((_, i) => i !== index));
+    });
+  };
 
   const handleAddWhy = () => setWhyItems(prev => [...prev, { title: "New Reason", text: "Describe the reason here." }]);
-  const handleRemoveWhy = (index) => setWhyItems(prev => prev.filter((_, i) => i !== index));
+  const handleRemoveWhy = (index) => {
+    askConfirm('Are you sure you want to delete this item?', () => {
+      setWhyItems(prev => prev.filter((_, i) => i !== index));
+    });
+  };
 
   return (
     <div className="about-page">
@@ -268,7 +296,11 @@ const About = () => {
           )}
 
           <div className="values-grid">
-            {values.map((value, index) => (
+            {values.map((value, index) => {
+              const key = `about:value:${index}`;
+              const disabled = isDisabled(key);
+              if (disabled && !isEditMode) return null;
+              return (
               <motion.div
                 key={value.title}
                 className="value-card"
@@ -278,7 +310,7 @@ const About = () => {
                 viewport={{ once: true }}
                 whileHover={{ y: -5 }}
               >
-                <div style={{ position: 'relative', paddingTop: isEditMode ? 56 : 0 }}>
+                <div style={{ position: 'relative', paddingTop: isEditMode ? 56 : 0, opacity: disabled ? 0.5 : 1 }}>
                   {isEditMode && (
                     <div
                       style={{ position: 'absolute', top: 8, right: 8, zIndex: 5 }}
@@ -291,6 +323,14 @@ const About = () => {
                       >
                         Delete
                       </button>
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        style={{ marginLeft: 8 }}
+                        onClick={() => (disabled ? enableContent(key) : disableContent(key))}
+                      >
+                        {disabled ? 'Activate' : 'Disable'}
+                      </button>
                     </div>
                   )}
                   <div className="value-icon">
@@ -300,7 +340,7 @@ const About = () => {
                   <p>{value.description}</p>
                 </div>
               </motion.div>
-            ))}
+            )})}
           </div>
         </div>
       </section>
@@ -328,7 +368,11 @@ const About = () => {
             </div>
           )}
           <div className="features-grid">
-            {whyItems.map((item, idx) => (
+            {whyItems.map((item, idx) => {
+              const key = `about:why:${idx}`;
+              const disabled = isDisabled(key);
+              if (disabled && !isEditMode) return null;
+              return (
               <motion.div 
                 key={`${item.title}-${idx}`}
                 className="feature-item"
@@ -336,7 +380,7 @@ const About = () => {
                 animate={inView ? { opacity: 1, x: 0 } : {}}
                 transition={{ duration: 0.6, delay: idx * 0.1 }}
               >
-                <div style={{ position: 'relative', paddingTop: isEditMode ? 56 : 0 }}>
+                <div style={{ position: 'relative', paddingTop: isEditMode ? 56 : 0, opacity: disabled ? 0.5 : 1 }}>
                   {isEditMode && (
                     <div style={{ position: 'absolute', top: 8, right: 8, zIndex: 5 }} contentEditable={false}>
                       <button
@@ -345,6 +389,14 @@ const About = () => {
                         onClick={() => handleRemoveWhy(idx)}
                       >
                         Delete
+                      </button>
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        style={{ marginLeft: 8 }}
+                        onClick={() => (disabled ? enableContent(key) : disableContent(key))}
+                      >
+                        {disabled ? 'Activate' : 'Disable'}
                       </button>
                     </div>
                   )}
@@ -355,7 +407,7 @@ const About = () => {
                   </div>
                 </div>
               </motion.div>
-            ))}
+            )})}
           </div>
         </div>
       </section>
@@ -384,7 +436,11 @@ const About = () => {
             </div>
           )}
           <div className="services-grid">
-            {services.map((service, index) => (
+            {services.map((service, index) => {
+              const key = `about:service:${index}`;
+              const disabled = isDisabled(key);
+              if (disabled && !isEditMode) return null;
+              return (
               <motion.div
                 key={service}
                 className="service-item"
@@ -392,19 +448,27 @@ const About = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                style={{ position: 'relative', paddingTop: isEditMode ? 56 : 0 }}
+                style={{ position: 'relative', paddingTop: isEditMode ? 56 : 0, opacity: disabled ? 0.5 : 1 }}
               >
                 {isEditMode && (
                   <div style={{ position: 'absolute', top: 8, right: 8, zIndex: 5 }} contentEditable={false}>
                     <button type="button" className="btn btn-secondary" onClick={() => handleRemoveService(index)}>
                       Delete
                     </button>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      style={{ marginLeft: 8 }}
+                      onClick={() => (disabled ? enableContent(key) : disableContent(key))}
+                    >
+                      {disabled ? 'Activate' : 'Disable'}
+                    </button>
                   </div>
                 )}
                 <FiCheckCircle className="service-icon" />
                 <span>{service}</span>
               </motion.div>
-            ))}
+            )})}
           </div>
         </div>
       </section>
@@ -433,7 +497,11 @@ const About = () => {
             </div>
           )}
           <div className="solutions-grid">
-            {sectorSolutions.map((solution, index) => (
+            {sectorSolutions.map((solution, index) => {
+              const key = `about:sector:${index}`;
+              const disabled = isDisabled(key);
+              if (disabled && !isEditMode) return null;
+              return (
               <motion.div
                 key={solution}
                 className="solution-item"
@@ -441,19 +509,27 @@ const About = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                style={{ position: 'relative', paddingTop: isEditMode ? 56 : 0 }}
+                style={{ position: 'relative', paddingTop: isEditMode ? 56 : 0, opacity: disabled ? 0.5 : 1 }}
               >
                 {isEditMode && (
                   <div style={{ position: 'absolute', top: 8, right: 8, zIndex: 5 }} contentEditable={false}>
                     <button type="button" className="btn btn-secondary" onClick={() => handleRemoveSectorSolution(index)}>
                       Delete
                     </button>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      style={{ marginLeft: 8 }}
+                      onClick={() => (disabled ? enableContent(key) : disableContent(key))}
+                    >
+                      {disabled ? 'Activate' : 'Disable'}
+                    </button>
                   </div>
                 )}
                 <FiCheckCircle className="solution-icon" />
                 <span>{solution}</span>
               </motion.div>
-            ))}
+            )})}
           </div>
         </div>
       </section>
@@ -482,7 +558,11 @@ const About = () => {
             </div>
           )}
           <div className="value-services-grid">
-            {valueAddedServices.map((service, index) => (
+            {valueAddedServices.map((service, index) => {
+              const key = `about:valueAdded:${index}`;
+              const disabled = isDisabled(key);
+              if (disabled && !isEditMode) return null;
+              return (
               <motion.div
                 key={service}
                 className="value-service-item"
@@ -490,19 +570,27 @@ const About = () => {
                 whileInView={{ opacity: 1, y: 0 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                style={{ position: 'relative', paddingTop: isEditMode ? 56 : 0 }}
+                style={{ position: 'relative', paddingTop: isEditMode ? 56 : 0, opacity: disabled ? 0.5 : 1 }}
               >
                 {isEditMode && (
                   <div style={{ position: 'absolute', top: 8, right: 8, zIndex: 5 }} contentEditable={false}>
                     <button type="button" className="btn btn-secondary" onClick={() => handleRemoveValueAdded(index)}>
                       Delete
                     </button>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      style={{ marginLeft: 8 }}
+                      onClick={() => (disabled ? enableContent(key) : disableContent(key))}
+                    >
+                      {disabled ? 'Activate' : 'Disable'}
+                    </button>
                   </div>
                 )}
                 <FiCheckCircle className="value-service-icon" />
                 <span>{service}</span>
               </motion.div>
-            ))}
+            )})}
           </div>
         </div>
       </section>
@@ -538,7 +626,11 @@ const About = () => {
             whileInView={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8 }}
           >
-            {brands.map((brand, index) => (
+            {brands.map((brand, index) => {
+              const key = `about:brand:${index}`;
+              const disabled = isDisabled(key);
+              if (disabled && !isEditMode) return null;
+              return (
               <motion.div
                 key={brand.name}
                 className={`brand-item ${brandsAnimated ? 'in-view' : ''}`}
@@ -546,12 +638,20 @@ const About = () => {
                 animate={brandsAnimated ? { opacity: 1, scale: 1 } : { opacity: 0, scale: 0.8 }}
                 transition={{ duration: 0.4, delay: index * 0.05 }}
                 whileHover={{ scale: 1.05 }}
-                style={{ position: 'relative', paddingTop: isEditMode ? 56 : 0 }}
+                style={{ position: 'relative', paddingTop: isEditMode ? 56 : 0, opacity: disabled ? 0.5 : 1 }}
               >
                 {isEditMode && (
                   <div style={{ position: 'absolute', top: 4, right: 4, zIndex: 5 }} contentEditable={false}>
                     <button type="button" className="btn btn-secondary" onClick={() => handleRemoveBrand(index)}>
                       Delete
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-secondary"
+                      style={{ marginLeft: 8 }}
+                      onClick={() => (disabled ? enableContent(key) : disableContent(key))}
+                    >
+                      {disabled ? 'Activate' : 'Disable'}
                     </button>
                   </div>
                 )}
@@ -565,7 +665,7 @@ const About = () => {
                   }}
                 />
               </motion.div>
-            ))}
+            )})}
           </motion.div>
         </div>
       </section>
@@ -636,7 +736,11 @@ const About = () => {
             </div>
           )}
           <div className="achievements-grid">
-            {achievements.map((achievement, index) => (
+            {achievements.map((achievement, index) => {
+              const key = `about:achievement:${index}`;
+              const disabled = isDisabled(key);
+              if (disabled && !isEditMode) return null;
+              return (
               <motion.div
                 key={achievement.label}
                 className="achievement-card"
@@ -644,7 +748,7 @@ const About = () => {
                 whileInView={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
-                style={{ position: 'relative', paddingTop: isEditMode ? 56 : 0 }}
+                style={{ position: 'relative', paddingTop: isEditMode ? 56 : 0, opacity: disabled ? 0.5 : 1 }}
               >
                 {isEditMode && (
                   <div style={{ position: 'absolute', top: 8, right: 8, zIndex: 5 }} contentEditable={false}>
@@ -659,10 +763,16 @@ const About = () => {
                 <div className="achievement-number">{achievement.number}</div>
                 <div className="achievement-label">{achievement.label}</div>
               </motion.div>
-            ))}
+            )})}
           </div>
         </div>
       </section>
+      <ConfirmDialog
+        open={confirmState.open}
+        message={confirmState.message}
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+      />
     </div>
   );
 };

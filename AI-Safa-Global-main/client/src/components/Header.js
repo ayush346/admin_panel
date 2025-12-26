@@ -120,6 +120,9 @@ const Header = () => {
                 >
                   Host
                 </button>
+                <Link to="/analytics" className="btn btn-secondary">
+                  Analytics
+                </Link>
                 <button className="btn btn-secondary" onClick={() => setEditMode(false)}>
                   Exit
                 </button>

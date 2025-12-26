@@ -5,6 +5,7 @@ const helmet = require('helmet');
 const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config();
 
 const app = express();
@@ -51,6 +52,7 @@ app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 // Routes
 app.use('/api/contact', require('./routes/contact'));
 app.use('/api/inquiry', require('./routes/inquiry'));
+app.use('/api/analytics', require('./routes/analytics'));
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
@@ -61,12 +63,13 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// Serve React app in production
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, '../client/build')));
-  
-  app.get('*', (req, res) => {
-    res.sendFile(path.join(__dirname, '../client/build', 'index.html'));
+// Serve React app if build exists (works for production and local)
+const buildDir = path.join(__dirname, '../client/build');
+if (fs.existsSync(buildDir)) {
+  app.use(express.static(buildDir));
+  // Send React index.html for non-API routes
+  app.get(/^\/(?!api).*/, (req, res) => {
+    res.sendFile(path.join(buildDir, 'index.html'));
   });
 }
 

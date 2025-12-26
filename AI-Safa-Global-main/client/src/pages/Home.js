@@ -23,9 +23,11 @@ import StatsSection from '../components/StatsSection';
 import TestimonialSection from '../components/TestimonialSection';
 import CtaSection from '../components/CtaSection';
 import './Home.css';
+import { ConfirmDialog, useConfirmState } from '../components/ConfirmDialog';
 
 const Home = () => {
-  const { isEditMode } = useEditMode();
+  const { isEditMode, isDisabled, disableContent, enableContent } = useEditMode();
+  const { confirmState, askConfirm, handleConfirm, handleCancel } = useConfirmState();
   const [ref, inView] = useInView({
     threshold: 0.1,
     triggerOnce: true
@@ -168,7 +170,9 @@ const Home = () => {
   };
 
   const handleRemoveFeature = (indexToRemove) => {
-    setFeatures(prev => prev.filter((_, i) => i !== indexToRemove));
+    askConfirm('Are you sure you want to delete this item?', () => {
+      setFeatures(prev => prev.filter((_, i) => i !== indexToRemove));
+    });
   };
 
   const initialDivisions = [
@@ -231,7 +235,9 @@ const Home = () => {
   };
 
   const handleRemoveDivision = (id) => {
-    setDivisions(prev => prev.filter(d => d.id !== id));
+    askConfirm('Are you sure you want to delete this segment?', () => {
+      setDivisions(prev => prev.filter(d => d.id !== id));
+    });
   };
 
   const handleDragStart = (index) => {
@@ -387,7 +393,11 @@ const Home = () => {
           )}
 
           <div className="divisions-grid">
-            {divisions.map((division, index) => (
+            {divisions.map((division, index) => {
+              const key = `home:division:${division.id}`;
+              const disabled = isDisabled(key);
+              if (disabled && !isEditMode) return null;
+              return (
               <motion.div
                 key={division.id}
                 initial={{ opacity: 0, scale: 0.9 }}
@@ -400,7 +410,7 @@ const Home = () => {
                 onDragOver={(e) => { if (isEditMode) e.preventDefault(); }}
                 onDrop={() => handleDrop(index)}
               >
-                <div style={{ position: 'relative', paddingTop: isEditMode ? 56 : 0 }}>
+                <div style={{ position: 'relative', paddingTop: isEditMode ? 56 : 0, opacity: disabled ? 0.5 : 1 }}>
                   {isEditMode && (
                     <div
                       style={{ position: 'absolute', top: 8, right: 8, zIndex: 5 }}
@@ -413,12 +423,20 @@ const Home = () => {
                       >
                         Delete
                       </button>
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        style={{ marginLeft: 8 }}
+                        onClick={() => (disabled ? enableContent(key) : disableContent(key))}
+                      >
+                        {disabled ? 'Activate' : 'Disable'}
+                      </button>
                     </div>
                   )}
                   <DivisionCard {...division} />
                 </div>
               </motion.div>
-            ))}
+            )})}
           </div>
         </div>
       </section>
@@ -448,7 +466,11 @@ const Home = () => {
           )}
 
           <div className="features-grid">
-            {features.map((feature, index) => (
+            {features.map((feature, index) => {
+              const key = `home:feature:${index}`;
+              const disabled = isDisabled(key);
+              if (disabled && !isEditMode) return null;
+              return (
               <motion.div
                 key={feature.title}
                 initial={{ opacity: 0, y: 30 }}
@@ -456,7 +478,7 @@ const Home = () => {
                 transition={{ duration: 0.6, delay: index * 0.1 }}
                 viewport={{ once: true }}
               >
-                <div style={{ position: 'relative', paddingTop: isEditMode ? 56 : 0 }}>
+                <div style={{ position: 'relative', paddingTop: isEditMode ? 56 : 0, opacity: disabled ? 0.5 : 1 }}>
                   {isEditMode && (
                     <div
                       style={{ position: 'absolute', top: 8, right: 8, zIndex: 5 }}
@@ -469,12 +491,20 @@ const Home = () => {
                       >
                         Delete
                       </button>
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        style={{ marginLeft: 8 }}
+                        onClick={() => (disabled ? enableContent(key) : disableContent(key))}
+                      >
+                        {disabled ? 'Activate' : 'Disable'}
+                      </button>
                     </div>
                   )}
                   <FeatureCard {...feature} />
                 </div>
               </motion.div>
-            ))}
+            )})}
           </div>
         </div>
       </section>
@@ -487,6 +517,12 @@ const Home = () => {
 
       {/* 7. Get in Touch - Testimonials Section */}
       <TestimonialSection />
+      <ConfirmDialog
+        open={confirmState.open}
+        message={confirmState.message}
+        onConfirm={handleConfirm}
+        onCancel={handleCancel}
+      />
     </div>
   );
 };

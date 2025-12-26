@@ -6,7 +6,31 @@ import { useEditMode } from '../context/EditModeContext';
 
 const Divisions = () => {
   const location = useLocation();
-  const { isEditMode } = useEditMode();
+  const { isEditMode, isDisabled, disableContent, enableContent } = useEditMode();
+  const [confirmState, setConfirmState] = useState({
+    open: false,
+    message: '',
+    onConfirm: null,
+  });
+
+  const askConfirm = (message, onConfirm) => {
+    setConfirmState({
+      open: true,
+      message,
+      onConfirm,
+    });
+  };
+
+  const handleConfirm = () => {
+    if (typeof confirmState.onConfirm === 'function') {
+      confirmState.onConfirm();
+    }
+    setConfirmState({ open: false, message: '', onConfirm: null });
+  };
+
+  const handleCancel = () => {
+    setConfirmState({ open: false, message: '', onConfirm: null });
+  };
 
   // Scroll to specific section based on URL hash or query parameter
   useEffect(() => {
@@ -194,7 +218,13 @@ const Divisions = () => {
             </div>
           )}
 
-          {divisions.map((division, index) => (
+          {divisions.map((division, index) => {
+            const sectionKey = `divisions:segment:${division.id}`;
+            const sectionDisabled = isDisabled(sectionKey);
+            if (sectionDisabled && !isEditMode) {
+              return null;
+            }
+            return (
             <motion.div
               key={division.title}
               id={division.id}
@@ -203,7 +233,7 @@ const Divisions = () => {
               whileInView={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: index * 0.1 }}
               viewport={{ once: true }}
-              style={isEditMode ? { position: 'relative', paddingTop: 56 } : undefined}
+              style={isEditMode ? { position: 'relative', paddingTop: 56, opacity: sectionDisabled ? 0.5 : 1 } : undefined}
             >
               {isEditMode && (
                 <div
@@ -213,9 +243,22 @@ const Divisions = () => {
                   <button
                     type="button"
                     className="btn btn-secondary"
-                    onClick={() => handleRemoveDivision(division.id)}
+                    onClick={() =>
+                      askConfirm(
+                        'Are you sure you want to delete this segment?',
+                        () => handleRemoveDivision(division.id)
+                      )
+                    }
                   >
                     Delete
+                  </button>
+                  <button
+                    type="button"
+                    className="btn btn-secondary"
+                    style={{ marginLeft: 8 }}
+                    onClick={() => (sectionDisabled ? enableContent(sectionKey) : disableContent(sectionKey))}
+                  >
+                    {sectionDisabled ? 'Activate' : 'Disable'}
                   </button>
                 </div>
               )}
@@ -238,14 +281,20 @@ const Divisions = () => {
                   </div>
                 )}
                 <ul className="division-items">
-                  {division.items.map((item, itemIndex) => (
+                  {division.items.map((item, itemIndex) => {
+                    const itemKey = `divisions:item:${division.id}:${itemIndex}`;
+                    const itemDisabled = isDisabled(itemKey);
+                    if (itemDisabled && !isEditMode) {
+                      return null;
+                    }
+                    return (
                     <motion.li 
                       key={itemIndex}
                       initial={{ opacity: 0, x: -20 }}
                       whileInView={{ opacity: 1, x: 0 }}
                       transition={{ duration: 0.4, delay: itemIndex * 0.1 }}
                       viewport={{ once: true }}
-                      style={{ position: 'relative', paddingRight: isEditMode ? 90 : undefined }}
+                      style={{ position: 'relative', paddingRight: isEditMode ? 160 : undefined, opacity: itemDisabled ? 0.5 : 1 }}
                     >
                       {isEditMode && (
                         <div
@@ -255,19 +304,32 @@ const Divisions = () => {
                           <button
                             type="button"
                             className="btn btn-secondary"
-                            onClick={() => handleRemoveDivisionItem(division.id, itemIndex)}
+                            onClick={() =>
+                              askConfirm(
+                                'Are you sure you want to delete this item?',
+                                () => handleRemoveDivisionItem(division.id, itemIndex)
+                              )
+                            }
                           >
                             Delete
+                          </button>
+                          <button
+                            type="button"
+                            className="btn btn-secondary"
+                            style={{ marginLeft: 8 }}
+                            onClick={() => (itemDisabled ? enableContent(itemKey) : disableContent(itemKey))}
+                          >
+                            {itemDisabled ? 'Activate' : 'Disable'}
                           </button>
                         </div>
                       )}
                       {item}
                     </motion.li>
-                  ))}
+                  )})}
                 </ul>
               </div>
             </motion.div>
-          ))}
+          )})}
         </div>
       </section>
 
@@ -282,16 +344,56 @@ const Divisions = () => {
             viewport={{ once: true }}
           >
             <h2>Why Choose Us?</h2>
-            <WhyChooseEditable />
+            <WhyChooseEditable askConfirm={askConfirm} />
           </motion.div>
         </div>
       </section>
+
+      {/* Confirmation Dialog */}
+      {confirmState.open && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(0,0,0,0.45)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 9999
+          }}
+          onClick={handleCancel}
+        >
+          <div
+            style={{
+              background: '#fff',
+              padding: '1rem 1.25rem',
+              borderRadius: 8,
+              width: 'min(420px, 92vw)',
+              boxShadow: '0 10px 30px rgba(0,0,0,0.2)'
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h4 style={{ margin: 0, marginBottom: 8 }}>Confirm Deletion</h4>
+            <p style={{ margin: 0 }}>{confirmState.message}</p>
+            <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end', marginTop: 16 }}>
+              <button type="button" className="btn btn-secondary" onClick={handleCancel}>
+                Cancel
+              </button>
+              <button type="button" className="btn btn-secondary" onClick={handleConfirm}>
+                Confirm
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
 
-function WhyChooseEditable() {
-  const { isEditMode } = useEditMode();
+function WhyChooseEditable({ askConfirm }) {
+  const { isEditMode, isDisabled, disableContent, enableContent } = useEditMode();
   const initialInfo = [
     {
       title: "Specialized Expertise",
@@ -333,11 +435,15 @@ function WhyChooseEditable() {
         </div>
       )}
       <div className="info-grid">
-        {items.map((info, idx) => (
+        {items.map((info, idx) => {
+          const infoKey = `divisions:why:${idx}`;
+          const disabled = isDisabled(infoKey);
+          if (disabled && !isEditMode) return null;
+          return (
           <div
             key={`${info.title}-${idx}`}
             className="info-item"
-            style={{ position: 'relative', paddingTop: isEditMode ? 56 : undefined }}
+            style={{ position: 'relative', paddingTop: isEditMode ? 56 : undefined, opacity: disabled ? 0.5 : 1 }}
           >
             {isEditMode && (
               <div
@@ -347,16 +453,29 @@ function WhyChooseEditable() {
                 <button
                   type="button"
                   className="btn btn-secondary"
-                  onClick={() => handleRemove(idx)}
+                  onClick={() =>
+                    askConfirm(
+                      'Are you sure you want to delete this item?',
+                      () => handleRemove(idx)
+                    )
+                  }
                 >
                   Delete
+                </button>
+                <button
+                  type="button"
+                  className="btn btn-secondary"
+                  style={{ marginLeft: 8 }}
+                  onClick={() => (disabled ? enableContent(infoKey) : disableContent(infoKey))}
+                >
+                  {disabled ? 'Activate' : 'Disable'}
                 </button>
               </div>
             )}
             <h3>{info.title}</h3>
             <p>{info.text}</p>
           </div>
-        ))}
+        )})}
       </div>
     </>
   );

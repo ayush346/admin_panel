@@ -3,9 +3,11 @@ import { motion } from 'framer-motion';
 import { FiMail, FiMapPin, FiPhone, FiGlobe, FiClock, FiUsers } from 'react-icons/fi';
 import './Contact.css';
 import { useEditMode } from '../context/EditModeContext';
+import { ConfirmDialog, useConfirmState } from '../components/ConfirmDialog';
 
 const Contact = () => {
-  const { isEditMode } = useEditMode();
+  const { isEditMode, isDisabled, disableContent, enableContent } = useEditMode();
+  const { confirmState, askConfirm, handleConfirm, handleCancel } = useConfirmState();
   const initialBenefits = [
     { title: "Global Sourcing Network", text: "Direct access to reputed brands and suppliers worldwide for comprehensive procurement solutions." },
     { title: "End-to-End Solutions", text: "Complete procurement and logistics management from sourcing to delivery coordination." },
@@ -19,7 +21,9 @@ const Contact = () => {
     setBenefits(prev => [...prev, { title: "New Benefit", text: "Click here to describe the benefit." }]);
   };
   const handleRemoveBenefit = (indexToRemove) => {
-    setBenefits(prev => prev.filter((_, i) => i !== indexToRemove));
+    askConfirm('Are you sure you want to delete this item?', () => {
+      setBenefits(prev => prev.filter((_, i) => i !== indexToRemove));
+    });
   };
   const [formData, setFormData] = useState({
     name: '',
@@ -397,27 +401,45 @@ Submitted on: ${new Date().toLocaleString()}
               </div>
             )}
             <div className="benefits-grid">
-              {benefits.map((b, idx) => (
+              {benefits.map((b, idx) => {
+                const key = `contact:benefit:${idx}`;
+                const disabled = isDisabled(key);
+                if (disabled && !isEditMode) return null;
+                return (
                 <div
                   key={`${b.title}-${idx}`}
                   className="benefit-item"
-                  style={{ position: 'relative', paddingTop: isEditMode ? 56 : 0 }}
+                  style={{ position: 'relative', paddingTop: isEditMode ? 56 : 0, opacity: disabled ? 0.5 : 1 }}
                 >
                   {isEditMode && (
                     <div style={{ position: 'absolute', top: 8, right: 8, zIndex: 5 }} contentEditable={false}>
                       <button type="button" className="btn btn-secondary" onClick={() => handleRemoveBenefit(idx)}>
                         Delete
                       </button>
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        style={{ marginLeft: 8 }}
+                        onClick={() => (disabled ? enableContent(key) : disableContent(key))}
+                      >
+                        {disabled ? 'Activate' : 'Disable'}
+                      </button>
                     </div>
                   )}
                   <h3>{b.title}</h3>
                   <p>{b.text}</p>
                 </div>
-              ))}
+              )})}
             </div>
           </motion.div>
         </div>
       </section>
+    <ConfirmDialog
+      open={confirmState.open}
+      message={confirmState.message}
+      onConfirm={handleConfirm}
+      onCancel={handleCancel}
+    />
     </div>
   );
 };

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useLocation } from 'react-router-dom';
 import { Helmet } from 'react-helmet';
 import ScrollToTop from './components/ScrollToTop';
 import Header from './components/Header';
@@ -10,12 +10,14 @@ import Divisions from './pages/Divisions';
 import Contact from './pages/Contact';
 import Quote from './pages/Quote';
 import Admin from './pages/Admin';
+import Analytics from './pages/Analytics';
 import './App.css';
 import { useEffect, useRef } from 'react';
 import { useEditMode } from './context/EditModeContext';
 
 function App() {
   const { isEditMode } = useEditMode();
+  const location = useLocation();
   const mainRef = useRef(null);
   const footerRef = useRef(null);
 
@@ -25,17 +27,10 @@ function App() {
     if (targets.length === 0) return;
 
     const handleClick = (e) => {
+      // Image replace on click (only in edit mode)
       if (!isEditMode) return;
-
-      // Prevent navigation while editing
       const anchor = e.target.closest('a');
-      if (anchor) {
-        e.preventDefault();
-        e.stopPropagation();
-        return;
-      }
-
-      // Image replace on click
+      if (anchor) return;
       const img = e.target.closest('img');
       if (img) {
         e.preventDefault();
@@ -63,6 +58,86 @@ function App() {
   }, [isEditMode]);
 
   // Note: Avoid restoring raw innerHTML to prevent React reconciliation issues.
+
+  // Analytics: track page views on route change
+  useEffect(() => {
+    const ensureIds = () => {
+      let clientId = localStorage.getItem('asg:clientId');
+      if (!clientId) {
+        clientId = Math.random().toString(36).slice(2) + Date.now().toString(36);
+        localStorage.setItem('asg:clientId', clientId);
+      }
+      let sessionId = sessionStorage.getItem('asg:sessionId');
+      const lastTs = Number(sessionStorage.getItem('asg:lastTs') || '0');
+      const now = Date.now();
+      const thirtyMin = 30 * 60 * 1000;
+      if (!sessionId || now - lastTs > thirtyMin) {
+        sessionId = Math.random().toString(36).slice(2) + now.toString(36);
+      }
+      sessionStorage.setItem('asg:sessionId', sessionId);
+      sessionStorage.setItem('asg:lastTs', String(now));
+      return { clientId, sessionId };
+    };
+    const getDevice = () => {
+      const ua = navigator.userAgent || '';
+      if (/Mobile|Android|iPhone|iPad/i.test(ua)) return 'mobile';
+      if (/Tablet/i.test(ua)) return 'tablet';
+      return 'desktop';
+    };
+    const getLoadTime = () => {
+      try {
+        const nav = performance.getEntriesByType('navigation')[0];
+        if (nav && typeof nav.loadEventEnd === 'number') {
+          return Math.max(0, nav.loadEventEnd);
+        }
+      } catch {}
+      return undefined;
+    };
+    const ids = ensureIds();
+    const payload = {
+      type: 'pageview',
+      path: window.location.pathname + window.location.search + window.location.hash,
+      meta: {
+        clientId: ids.clientId,
+        sessionId: ids.sessionId,
+        device: getDevice(),
+        ua: navigator.userAgent,
+        width: window.innerWidth,
+        height: window.innerHeight,
+        loadTimeMs: getLoadTime(),
+      },
+    };
+    try {
+      navigator.sendBeacon?.('/api/analytics/track', new Blob([JSON.stringify(payload)], { type: 'application/json' }))
+        || fetch('/api/analytics/track', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+    } catch {}
+  }, [location]);
+
+  // Analytics: track clicks globally
+  useEffect(() => {
+    const onClick = (e) => {
+      // refresh session activity
+      sessionStorage.setItem('asg:lastTs', String(Date.now()));
+      const clientId = localStorage.getItem('asg:clientId');
+      const sessionId = sessionStorage.getItem('asg:sessionId');
+      try {
+        const target = e.target.closest('[data-analytics-label]') || e.target;
+        const label = target?.getAttribute?.('data-analytics-label') || target?.tagName;
+        const text = (target?.innerText || '').trim().slice(0, 120);
+        const payload = {
+          type: 'click',
+          path: window.location.pathname + window.location.search + window.location.hash,
+          element: label,
+          text,
+          meta: { clientId, sessionId },
+        };
+        navigator.sendBeacon?.('/api/analytics/track', new Blob([JSON.stringify(payload)], { type: 'application/json' }))
+          || fetch('/api/analytics/track', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload) });
+      } catch {}
+    };
+    document.addEventListener('click', onClick, true);
+    return () => document.removeEventListener('click', onClick, true);
+  }, []);
 
   return (
     <>
@@ -103,6 +178,7 @@ function App() {
             <Route path="/contact" element={<Contact />} />
             <Route path="/quote" element={<Quote />} />
             <Route path="/admin" element={<Admin />} />
+            <Route path="/analytics" element={<Analytics />} />
           </Routes>
         </main>
         <div
