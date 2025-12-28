@@ -5,7 +5,7 @@
   "main": "server/index.js",
   "scripts": {
     "dev": "concurrently \"npm run server\" \"npm run client\"",
-    "server": "nodemon server/index.js",
+    "server": "cross-env PORT=5002 nodemon server/index.js",
     "client": "cd client && npm start",
     "build": "cd client && npm run build",
     "install-client": "cd client && npm install",
@@ -40,6 +40,7 @@
   },
   "devDependencies": {
     "concurrently": "^8.2.0",
+    "cross-env": "^7.0.3",
     "nodemon": "^3.0.1",
     "serve": "^14.2.5"
   },
