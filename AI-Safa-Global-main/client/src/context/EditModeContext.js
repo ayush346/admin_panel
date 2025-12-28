@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useMemo, useState } from 'react';
+import React, { createContext, useContext, useMemo, useState, useCallback } from 'react';
 
 const EditModeContext = createContext({
   isEditMode: false,
@@ -17,22 +17,22 @@ export function EditModeProvider({ children }) {
 
   const toggleVisibilityMode = () => setVisibilityMode((v) => !v);
 
-  const isDisabled = (key) => disabledKeys.has(key);
-  const disableContent = (key) => {
+  const isDisabled = useCallback((key) => disabledKeys.has(key), [disabledKeys]);
+  const disableContent = useCallback((key) => {
     setDisabledKeys((prev) => {
       const next = new Set(prev);
       next.add(key);
       return next;
     });
-  };
-  const enableContent = (key) => {
+  }, [setDisabledKeys]);
+  const enableContent = useCallback((key) => {
     setDisabledKeys((prev) => {
       if (!prev.has(key)) return prev;
       const next = new Set(prev);
       next.delete(key);
       return next;
     });
-  };
+  }, [setDisabledKeys]);
 
   const contextValue = useMemo(
     () => ({
@@ -44,7 +44,7 @@ export function EditModeProvider({ children }) {
       disableContent,
       enableContent,
     }),
-    [isEditMode, visibilityMode, disabledKeys]
+    [isEditMode, visibilityMode, isDisabled, disableContent, enableContent, toggleVisibilityMode]
   );
 
   return (
