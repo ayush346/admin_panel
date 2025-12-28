@@ -54,11 +54,13 @@ export function useConfirmState() {
   }, []);
 
   const handleConfirm = React.useCallback(() => {
-    if (typeof confirmState.onConfirm === 'function') {
-      confirmState.onConfirm();
-    }
-    setConfirmState({ open: false, message: '', onConfirm: null });
-  }, [confirmState.onConfirm]);
+    setConfirmState((prev) => {
+      if (typeof prev.onConfirm === 'function') {
+        try { prev.onConfirm(); } catch (e) { /* no-op */ }
+      }
+      return { open: false, message: '', onConfirm: null };
+    });
+  }, []);
 
   const handleCancel = React.useCallback(() => {
     setConfirmState({ open: false, message: '', onConfirm: null });

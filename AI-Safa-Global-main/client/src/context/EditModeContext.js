@@ -15,7 +15,7 @@ export function EditModeProvider({ children }) {
   const [visibilityMode, setVisibilityMode] = useState(false);
   const [disabledKeys, setDisabledKeys] = useState(() => new Set());
 
-  const toggleVisibilityMode = () => setVisibilityMode((v) => !v);
+  const toggleVisibilityMode = useCallback(() => setVisibilityMode((v) => !v), []);
 
   const isDisabled = useCallback((key) => disabledKeys.has(key), [disabledKeys]);
   const disableContent = useCallback((key) => {

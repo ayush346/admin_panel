@@ -4,8 +4,7 @@ import { Link } from 'react-router-dom';
 import { 
   FiMail, 
   FiMapPin, 
-  FiPhone, 
-  FiGlobe
+  FiPhone 
 } from 'react-icons/fi';
 import './Footer.css';
 
