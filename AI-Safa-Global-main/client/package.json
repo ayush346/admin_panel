@@ -19,7 +19,8 @@
     "react-intersection-observer": "^9.4.3",
     "react-router-dom": "^6.8.1",
     "styled-components": "^5.3.10",
-    "web-vitals": "^2.1.4"
+    "web-vitals": "^2.1.4",
+    "react-scripts": "^5.0.1"
   },
   "scripts": {
     "start": "react-scripts start",
@@ -45,8 +46,5 @@
       "last 1 safari version"
     ]
   },
-  "proxy": "http://localhost:5002",
-  "devDependencies": {
-    "react-scripts": "^5.0.1"
-  }
+  "proxy": "http://localhost:5002"
 }
